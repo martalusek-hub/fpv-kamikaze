@@ -2,6 +2,11 @@
   "name": "fpv-kamikaze",
   "version": "1.0.0",
   "description": "FPV KAMIKAZE — simulátor FPV kamikaze dronu",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/martalusek-hub/fpv-kamikaze.git"
+  },
+  "homepage": "https://martalusek-hub.github.io/fpv-kamikaze/",
   "main": "main.js",
   "license": "MIT",
   "scripts": {

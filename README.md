@@ -5,7 +5,14 @@ Browserová 3D hra: začínáš jako **pěšák** na základně s puškou a rake
 do batohu a s nimi ničíš cíle na mapě náletem (jeden dron = jedna nálož).
 Grafika: low-poly, Three.js.
 
-## Spuštění
+## Hrát online
+
+**https://martalusek-hub.github.io/fpv-kamikaze/** — hra běží přímo v prohlížeči
+(GitHub Pages) a jde nainstalovat jako aplikaci. Po prvním načtení funguje i offline.
+
+Zdrojový kód: https://github.com/martalusek-hub/fpv-kamikaze
+
+## Spuštění lokálně
 
 **Dvojklik na `index.html`** — hra běží i offline (Three.js je lokálně v `lib/`).
 
