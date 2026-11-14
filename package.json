@@ -1,0 +1,32 @@
+{
+  "name": "fpv-kamikaze",
+  "version": "1.0.0",
+  "description": "FPV KAMIKAZE — simulátor FPV kamikaze dronu",
+  "main": "main.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win portable"
+  },
+  "build": {
+    "appId": "cz.fpvkamikaze",
+    "productName": "FPV Kamikaze",
+    "files": [
+      "index.html",
+      "manifest.webmanifest",
+      "icon.svg",
+      "css/**/*",
+      "js/**/*",
+      "lib/**/*"
+    ],
+    "win": {
+      "target": [
+        "portable"
+      ]
+    }
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.3"
+  }
+}

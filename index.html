@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FPV KAMIKAZE — simulátor</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='13' y='4' width='6' height='24' fill='%23ffb84d'/><rect x='4' y='13' width='24' height='6' fill='%23ffb84d'/><circle cx='16' cy='16' r='4' fill='%23ff5252'/></svg>">
+<link rel="stylesheet" href="css/style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta name="theme-color" content="#101216">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+
+<div id="boot">NAČÍTÁM SVĚT…</div>
+
+<div id="app"></div>
+<canvas id="hud"></canvas>
+<div id="thermalTint"></div>
+<div id="static"></div>
+<div id="scan"></div>
+<div id="vig"></div>
+<div id="dmg"></div>
+<div id="bigmsg"></div>
+<div id="toasts"></div>
+
+<!-- ================= HLAVNÍ MENU ================= -->
+<div id="menu" class="screen show">
+  <div class="panel" style="text-align:center">
+    <h1 class="title">FPV <b>KAMIKAZE</b></h1>
+    <div class="sub">JEDNORÁZOVÝ PRŮZKUMNÝ DRON — OPERACE DUENDE</div>
+    <div class="menu-stack">
+      <button class="btn primary" id="btnPlay">NOVÁ MISIE</button>
+      <button class="btn" id="btnSettings">NASTAVENÍ</button>
+      <button class="btn" id="btnHelp">OVLÁDÁNÍ</button>
+    </div>
+    <div class="foot">
+      <span id="padStatus">GAMEPAD / RC RÁDIO: nepřipojeno</span><br>
+      KLÁVESNICE &nbsp;•&nbsp; GAMEPAD &nbsp;•&nbsp; RC RÁDIO (USB JOYSTICK)<br>
+      <b>dvojklik na index.html</b> — hra běží i offline
+    </div>
+  </div>
+</div>
+
+<!-- ================= BRIEFING ================= -->
+<div id="briefing" class="screen">
+  <div class="panel">
+    <h2>BRIEFING</h2>
+    <h3 class="hangar-title">STARTovní DRON (do ruky)</h3>
+    <div class="drone-row" id="droneRow"></div>
+    <div class="brief">
+      Začínáš jako <b>pěšák na domácí základně</b>. Puškou likviduj pěchotu,
+      <b>raketometem nič tanky a techniku</b>. Drony nenajdeš v menu — musíš je
+      <b>hledat v bednách</b> rozesetých po mapě a hlavně <b>v zákopech</b>:
+      stoupni k&nbsp;bedně, zmáčkni <span class="hl">E</span> a dron si vezmi.
+      V zákopech jsou vždy <b>všechny tři typy</b> dronů a sebraná bedna se tam
+      <b>vrátí za 10 sekund</b>.
+      Do batohu se vejdou <b>3 drony</b> — mezi nimi přepínáš <span class="hl">Q</span>
+      nebo kolečkem myši. Vybraný dron vypustíš <span class="hl">G</span> a přepneš se
+      do FPV brýlí.<br><br>
+      Tvůj úkol: zničit všech <span id="briefTargets">16</span> cílů — tanky, radar,
+      protiletadlovou i raketovou baterii, velitelství, vrtulník i sklady.
+      Část techniky <b>se pohybuje</b> a základnu i postavení střeží <b>hlídky pěchoty</b>,
+      které po tobě střílí — na zemi i ve vzduchu. Kryj se, trup dronu vydrží jen pár zásahů.<br><br>
+      <b>KAMIKAZE</b> nese jednorázovou nálož, <b>PRŮZKUM</b> označí cíle termokamerou,
+      <b>BOMBARDÉR</b> shazuje pumy z&nbsp;kroužení (ORBIT). Signál VDO slábne s&nbsp;odstupem
+      od tábora a baterie vydrží dle typu dronu.<br><br>
+      Ovládání: <span class="hl">klávesnice + myš</span>, <span class="hl">gamepad</span> nebo
+      <span class="hl">RC rádio v&nbsp;režimu USB Joystick</span> (mapování v NASTAVENÍ).
+      Dron: <span class="hl">B</span> = puma, <span class="hl">T</span> = termokamera,
+      <span class="hl">O</span> = orbit, <span class="hl">R</span> = odvolat (zpět k pěšákovi).
+    </div>
+    <div class="menu-stack">
+      <button class="btn primary" id="btnLaunch">SPUSTIT MISI</button>
+      <button class="btn" id="btnBriefBack">ZPĚT</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= NASTAVENÍ ================= -->
+<div id="settings" class="screen">
+  <div class="panel" style="max-width:860px">
+    <h2>NASTAVENÍ</h2>
+    <div class="set-grid">
+      <div class="sec">
+        <h3>LET</h3>
+        <div class="frow"><label>REŽIM</label>
+          <select id="selMode">
+            <option value="acro">ACRO (rate)</option>
+            <option value="angle">ANGLE (samovýrovna)</option>
+          </select>
+        </div>
+        <div class="frow"><label>RATES R/P</label><input type="range" id="rngRates" min="200" max="800" step="10"><span class="val" id="rngRatesVal"></span></div>
+        <div class="frow"><label>RATES YAW</label><input type="range" id="rngYaw" min="120" max="500" step="10"><span class="val" id="rngYawVal"></span></div>
+        <div class="frow"><label>EXPO</label><input type="range" id="rngExpo" min="0" max="0.8" step="0.05"><span class="val" id="rngExpoVal"></span></div>
+        <div class="frow"><label>NÁKLON KAMERY</label><input type="range" id="rngTilt" min="0" max="40" step="1"><span class="val" id="rngTiltVal"></span></div>
+        <div class="frow"><label>FOV</label><input type="range" id="rngFov" min="70" max="120" step="1"><span class="val" id="rngFovVal"></span></div>
+        <div class="frow"><label>AUTO-ARM PO STARTU</label><input type="checkbox" id="chkAutoArm"></div>
+        <div class="frow"><label>ZAMĚŘOVACÍ POMOC</label><input type="checkbox" id="chkAssist"></div>
+      </div>
+      <div class="sec">
+        <h3>ZVUK &amp; OBRAZ</h3>
+        <div class="frow"><label>HLASITOST</label><input type="range" id="rngVolume" min="0" max="1" step="0.05"><span class="val" id="rngVolumeVal"></span></div>
+        <div class="frow"><label>ZTLUMIT</label><input type="checkbox" id="chkMute"></div>
+        <div class="frow"><label>ZNAČKY CÍLŮ (F)</label><input type="checkbox" id="chkMarkers"></div>
+        <div class="frow"><label>MINIMAPA (N)</label><input type="checkbox" id="chkMinimap"></div>
+        <div class="frow"><label>INDIKÁTOR PÁČEK</label><input type="checkbox" id="chkSticks"></div>
+        <div class="frow"><label>FPV FILTR (šum/scanlines)</label><input type="checkbox" id="chkFpvFx"></div>
+        <div class="frow"><label>STÍNY</label><input type="checkbox" id="chkShadows"></div>
+      </div>
+
+      <!-- gamepad / RC rádio -->
+      <div class="sec padbox">
+        <h3>GAMEPAD / RC RÁDIO</h3>
+        <div class="frow"><label>POUŽÍVAT GAMEPAD/RÁDIO</label><input type="checkbox" id="chkPad"></div>
+        <div class="frow"><label>ZAŘÍZENÍ</label><select id="selPad"></select></div>
+        <div class="frow">
+          <label>PŘEDNASTAVENÍ</label>
+          <button class="btn small" id="btnPresetMode2">GAMEPAD MODE&nbsp;2</button>
+          <button class="btn small" id="btnPresetAetr">RC RÁDIO AETR</button>
+        </div>
+        <div class="frow"><label>MRTVÁ ZÓNA</label><input type="range" id="rngDead" min="0" max="0.25" step="0.01"><span class="val" id="rngDeadVal"></span></div>
+        <div id="padChans"></div>
+        <div id="padLive"></div>
+        <div class="hint">
+          <b>RC rádio:</b> přepni vysílač do režimu <b>USB Joystick</b> (u&nbsp;většiny rádií podrž tlačítko při zapnutí
+          nebo nastav v menu USB → Joystick), připoj k PC a vyber přednastavení <b>RC RÁDIO AETR</b>.
+          Zkontroluj živý náhled níže — každá páčka musí hýbat správným kanálem; jinak přemapuj osy nebo
+          zaškrtni OBRÁTIT. ARM = tlačítko A (nebo MEZERNÍK), respawn = B.
+        </div>
+      </div>
+    </div>
+    <div class="menu-stack">
+      <button class="btn" id="btnSettingsBack">ZPĚT</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= OVLÁDÁNÍ ================= -->
+<div id="help" class="screen">
+  <div class="panel" style="max-width:640px">
+    <h2>OVLÁDÁNÍ</h2>
+    <h2>PĚŠÁK</h2>
+    <table class="keys">
+      <tr><td>W A S D</td><td>pohyb (Shift = sprint)</td></tr>
+      <tr><td>MYŠ</td><td>rozhlížení — kurzor je schovaný, míříš křížkem (klik do obrazu = zámek kurzoru; bez zámku stačí hýbat myší, u okrajů obrazu se otáčíš plynule)</td></tr>
+      <tr><td>LEVÉ TL. MYŠI</td><td>palba zvolenou zbraní</td></tr>
+      <tr><td>PRAVÉ TL. MYŠI</td><td>raketomet</td></tr>
+      <tr><td>1 / 2</td><td>puška / raketomet</td></tr>
+      <tr><td>R</td><td>přebít pušku</td></tr>
+      <tr><td>E</td><td>vzít dron z bedny (batoh = 3 drony)</td></tr>
+      <tr><td>Q / KOLEČKO</td><td>výběr dronu z batohu (Z = zpět)</td></tr>
+      <tr><td>G</td><td>vypustit vybraný dron — přepne do FPV</td></tr>
+      <tr><td>MEZERNÍK</td><td>skok</td></tr>
+      <tr><td>N / F / M</td><td>minimapa / značky cílů / ztlumit</td></tr>
+    </table>
+    <h2 style="margin-top:26px">DRON (FPV)</h2>
+    <table class="keys">
+      <tr><td>ŠIPKY ↑ ↓</td><td>výškovka — nos dolů / nahoru (pravá páčka dopředu = ponor)</td></tr>
+      <tr><td>ŠIPKY ← →</td><td>křidélka / náklon</td></tr>
+      <tr><td>A / D</td><td>směrovka (yaw)</td></tr>
+      <tr><td>W / S</td><td>plyn (drží se — jako páčka bez pružiny)</td></tr>
+      <tr><td>MEZERNÍK</td><td>ARM / DISARM (v acro nejprve stáhni plyn)</td></tr>
+      <tr><td>R</td><td>odvolat dron — návrat k pěšákovi</td></tr>
+      <tr><td>B</td><td>odhoz pumy (bombardér)</td></tr>
+      <tr><td>T</td><td>termokamera — tepelné signatury (průzkum / bombardér)</td></tr>
+      <tr><td>O</td><td>orbit — automatické kroužení kolem bodu před dronem (průzkum / bombardér)</td></tr>
+      <tr><td>C</td><td>kamera FPV / TPS</td></tr>
+      <tr><td>ESC</td><td>pauza</td></tr>
+    </table>
+    <h2 style="margin-top:26px">GAMEPAD (MODE 2)</h2>
+    <table class="keys">
+      <tr><td>PĚŠÁK: LEVÁ / PRAVÁ PÁČKA</td><td>pohyb / rozhlížení</td></tr>
+      <tr><td>PĚŠÁK: R2 / L2</td><td>palba / raketa</td></tr>
+      <tr><td>PĚŠÁK: Y / X</td><td>vzít dron z bedny / vypustit dron</td></tr>
+      <tr><td>DRON: LEVÁ PÁČKA</td><td>plyn (nahoru) + směrovka</td></tr>
+      <tr><td>DRON: PRAVÁ PÁČKA</td><td>výškovka + křidélka</td></tr>
+      <tr><td>A / CROSS</td><td>ARM</td></tr>
+      <tr><td>B / CIRCLE</td><td>odvolat dron (zpět k pěšákovi), u pěšáka přebít</td></tr>
+      <tr><td>X / SQUARE</td><td>odhoz pumy (dron)</td></tr>
+      <tr><td>Y / TRIANGLE</td><td>termokamera (dron)</td></tr>
+      <tr><td>START</td><td>pauza</td></tr>
+    </table>
+    <h2 style="margin-top:26px">RC RÁDIO</h2>
+    <div class="hint" style="font-size:12.5px">
+      Vysílač přepni do režimu <b>USB Joystick</b> a připoj. V <b>NASTAVENÍ → GAMEPAD/RC RÁDIO</b> vyber
+      přednastavení <b>RC RÁDIO AETR</b> (osa&nbsp;1 křidélka, 2 výškovka, 3 plyn, 4 směrovka).
+      Podle živého náhledu přemapuj nebo otoč kanály, nastav mrtvou zónu. Plyn je v acro režimu
+      přímo z páčky (dole = 0 %), v angle režimu střed páčky = držení výšky.
+    </div>
+    <div class="menu-stack">
+      <button class="btn" id="btnHelpBack">ZPĚT</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= PAUZA ================= -->
+<div id="pause" class="screen">
+  <div class="panel" style="text-align:center;min-width:340px">
+    <h2>PAUZA</h2>
+    <div class="menu-stack">
+      <button class="btn primary" id="btnResume">POKRAČOVAT</button>
+      <button class="btn" id="btnPauseSettings">NASTAVENÍ</button>
+      <button class="btn" id="btnRestart">RESTART MISE</button>
+      <button class="btn" id="btnHangar">VÝBĚR DRONU (nová mise)</button>
+      <button class="btn" id="btnQuit">VZDÁT MISI</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= KONEC MISE ================= -->
+<div id="end" class="screen">
+  <div class="panel" style="text-align:center">
+    <h2 id="endTitle">MISE SPLNĚNA</h2>
+    <div id="endRating">S</div>
+    <div id="endStats"></div>
+    <div class="menu-stack">
+      <button class="btn primary" id="btnAgain">ZNOVU</button>
+      <button class="btn" id="btnEndMenu">HLAVNÍ MENU</button>
+    </div>
+  </div>
+</div>
+
+<script src="lib/three.min.js"></script>
+<script src="js/util.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/input.js"></script>
+<script src="js/drone.js"></script>
+<script src="js/effects.js"></script>
+<script src="js/world.js"></script>
+<script src="js/player.js"></script>
+<script src="js/hud.js"></script>
+<script src="js/game.js"></script>
+<script>
+/* offline app: registrace service workeru (funguje na http/https, ne na file://) */
+if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./sw.js').catch(function () {});
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+# Electron / Node
+node_modules/
+dist/
+
+# OS / editor
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/
+.idea/
+
+# dočasné soubory
+*.log
+*.tmp

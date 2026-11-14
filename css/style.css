@@ -1,0 +1,241 @@
+/* =====================================================
+   FPV KAMIKAZE — styl
+   ===================================================== */
+:root {
+  --accent: #ffb84d;
+  --cyan: #9fe8ff;
+  --green: #8cf7a0;
+  --red: #ff5252;
+  --bg: #101216;
+  --panel: rgba(12, 14, 18, 0.88);
+  --line: #2c3138;
+  --text: #dfe8f2;
+  --dim: #8b98a8;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); }
+body {
+  font-family: Consolas, "Courier New", monospace;
+  color: var(--text);
+  user-select: none;
+}
+
+#app { position: fixed; inset: 0; }
+#app canvas { display: block; cursor: none; }
+
+#hud { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
+
+/* ---- FPV překryvy ---- */
+#static {
+  position: fixed; inset: 0; pointer-events: none; z-index: 6;
+  opacity: 0; background-repeat: repeat; background-size: 190px 190px;
+  mix-blend-mode: screen;
+}
+#scan {
+  position: fixed; inset: 0; pointer-events: none; z-index: 6; opacity: 0;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,0.22) 0 1px, transparent 1px 3px);
+}
+#vig {
+  position: fixed; inset: 0; pointer-events: none; z-index: 6; opacity: 0;
+  background: radial-gradient(ellipse at center, transparent 52%, rgba(0,0,0,0.5) 100%);
+}
+/* záblesk při zásahu dronu */
+#dmg {
+  position: fixed; inset: 0; pointer-events: none; z-index: 6; opacity: 0;
+  background: radial-gradient(ellipse at center, rgba(255,60,40,0.18) 30%, rgba(255,30,20,0.55) 100%);
+}
+#bigmsg {
+  position: fixed; top: 26%; left: 0; right: 0; text-align: center; z-index: 7;
+  font-size: clamp(26px, 4.6vw, 58px); font-weight: bold; letter-spacing: 0.3em;
+  color: #fff; text-shadow: 0 0 18px rgba(255,120,60,0.8), 0 2px 0 #000;
+  opacity: 0; pointer-events: none; transition: opacity 0.12s;
+}
+#bigmsg.blink { animation: blink 0.5s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0.25; } }
+
+#toasts {
+  position: fixed; top: 15%; left: 50%; transform: translateX(-50%);
+  z-index: 8; display: flex; flex-direction: column; gap: 6px; align-items: center;
+  pointer-events: none;
+}
+.toast {
+  background: var(--panel); border: 1px solid var(--cyan); color: var(--cyan);
+  padding: 7px 22px; font-size: 14px; letter-spacing: 0.14em;
+  border-left-width: 4px; transition: opacity 0.4s;
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+}
+
+/* ---- obrazovky / menu ---- */
+.screen {
+  position: fixed; inset: 0; z-index: 10;
+  display: none; align-items: center; justify-content: center;
+  background: rgba(6, 8, 10, 0.45);
+}
+.screen.show { display: flex; }
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 34px 44px;
+  max-width: min(720px, 92vw);
+  max-height: 88vh; overflow-y: auto;
+  clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.55);
+}
+
+h1.title {
+  font-size: clamp(30px, 5.4vw, 56px);
+  letter-spacing: 0.22em; color: #fff; font-weight: 900;
+  text-shadow: 0 0 24px rgba(255, 184, 77, 0.35);
+}
+h1.title b { color: var(--accent); }
+.sub { color: var(--dim); letter-spacing: 0.28em; font-size: 13px; margin-top: 6px; }
+h2 { font-size: 20px; letter-spacing: 0.22em; color: var(--accent); margin-bottom: 14px; }
+h2::after { content: ""; display: block; width: 64px; height: 2px; background: var(--accent); margin-top: 8px; }
+
+.menu-stack { display: flex; flex-direction: column; gap: 12px; margin-top: 30px; }
+
+.btn {
+  pointer-events: auto; cursor: pointer;
+  background: #171b21; color: var(--text);
+  border: 1px solid var(--line);
+  padding: 13px 26px; font-size: 15px; letter-spacing: 0.2em;
+  font-family: inherit; font-weight: bold;
+  clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  transition: all 0.12s;
+}
+.btn:hover { background: #232a33; border-color: var(--accent); color: #fff; transform: translateX(3px); }
+.btn.primary { background: var(--accent); color: #191408; border-color: var(--accent); }
+.btn.primary:hover { background: #ffcd7e; }
+.btn.small { padding: 8px 14px; font-size: 12px; }
+.btn.active { border-color: var(--green); color: var(--green); }
+
+.foot { margin-top: 26px; color: var(--dim); font-size: 11.5px; letter-spacing: 0.12em; line-height: 1.8; }
+.foot b { color: var(--cyan); }
+
+/* ---- briefing ---- */
+.brief { color: var(--text); line-height: 1.75; font-size: 14px; letter-spacing: 0.04em; }
+.brief b { color: var(--accent); }
+.brief .hl { color: var(--cyan); }
+
+/* ---- hangár: výběr dronu ---- */
+.hangar-title {
+  margin: 4px 0 10px; font-size: 13px; letter-spacing: 0.3em;
+  color: var(--cyan); text-align: center;
+}
+.drone-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; }
+.drone-card {
+  flex: 1 1 185px; max-width: 225px; cursor: pointer;
+  border: 1px solid rgba(160,220,255,0.25); background: rgba(10,16,22,0.85);
+  padding: 12px 14px; transition: border-color 0.12s, background 0.12s;
+}
+.drone-card:hover { border-color: rgba(160,220,255,0.6); }
+.drone-card.sel { border-color: #8cf7a0; background: rgba(18,38,28,0.9); box-shadow: 0 0 0 1px #8cf7a0 inset; }
+.drone-card h4 { margin: 0 0 8px; font-size: 15px; letter-spacing: 0.18em; color: #dff3ff; }
+.drone-card.sel h4 { color: #8cf7a0; }
+.drone-card p { font-size: 11.5px; color: rgba(190,210,225,0.75); margin: 0 0 10px; line-height: 1.5; }
+.drone-card ul { list-style: none; margin: 0; padding: 0; font-size: 11px; }
+.drone-card li {
+  display: flex; justify-content: space-between; gap: 8px;
+  padding: 3px 0; border-top: 1px solid rgba(255,255,255,0.07);
+}
+.drone-card li span { color: rgba(190,210,225,0.55); letter-spacing: 0.06em; }
+.drone-card li b { color: #dff3ff; white-space: nowrap; }
+
+/* ---- termokamera ---- */
+#thermalTint {
+  position: fixed; inset: 0; pointer-events: none; z-index: 4; opacity: 0;
+  background: radial-gradient(ellipse at center, rgba(140,255,190,0.10) 35%, rgba(8,36,26,0.45) 100%);
+  transition: opacity 0.15s;
+}
+body.thermal #thermalTint { opacity: 1; }
+body.thermal #app canvas { filter: grayscale(1) contrast(1.5) brightness(1.08); }
+
+/* ---- nastavení ---- */
+.set-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px 40px; }
+@media (max-width: 640px) { .set-grid { grid-template-columns: 1fr; } }
+.sec h3 { color: var(--cyan); font-size: 13px; letter-spacing: 0.24em; margin-bottom: 12px; }
+
+.frow { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 9px; font-size: 13px; }
+.frow label { color: var(--text); letter-spacing: 0.06em; }
+.frow .val { color: var(--accent); min-width: 58px; text-align: right; font-size: 12.5px; }
+
+input[type=range] {
+  -webkit-appearance: none; appearance: none;
+  width: 150px; height: 3px; background: #2c3138; outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 14px; height: 14px; background: var(--accent); cursor: pointer;
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+input[type=checkbox] {
+  appearance: none; -webkit-appearance: none;
+  width: 34px; height: 18px; background: #2c3138; cursor: pointer; position: relative;
+  transition: background 0.15s;
+}
+input[type=checkbox]::after {
+  content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
+  background: #6a7686; transition: all 0.15s;
+}
+input[type=checkbox]:checked { background: #3d2f14; }
+input[type=checkbox]:checked::after { left: 18px; background: var(--accent); }
+select {
+  background: #171b21; color: var(--text); border: 1px solid var(--line);
+  font-family: inherit; font-size: 12.5px; padding: 5px 8px; max-width: 220px;
+}
+
+/* ---- gamepad sekce ---- */
+.padbox { grid-column: 1 / -1; border: 1px dashed #3a414b; padding: 16px; margin-top: 4px; }
+.padrow { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+.padrow .pl { font-size: 11.5px; color: var(--dim); letter-spacing: 0.08em; min-width: 150px; }
+.padrow select { flex: 0 0 auto; }
+.padrow label.pl { display: flex; align-items: center; gap: 6px; }
+
+.padbar { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.padbar span { font-size: 10.5px; color: var(--dim); width: 82px; letter-spacing: 0.06em; }
+.padbar b { color: var(--cyan); font-size: 12px; width: 46px; text-align: right; }
+.track { width: 190px; height: 10px; background: #1d222a; position: relative; }
+.track .fill { position: absolute; top: 1px; bottom: 1px; background: var(--cyan); min-width: 2px; }
+
+.padraw { margin-top: 10px; border-top: 1px solid #2c3138; padding-top: 10px; }
+.axes { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0; }
+.axis { display: flex; align-items: center; gap: 4px; }
+.axis span { font-size: 10px; color: var(--dim); }
+.axis .track { width: 74px; height: 8px; }
+.axis .track .fill { background: var(--green); }
+.btns { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.padbtn {
+  width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid #3a414b; color: #5a6572; font-size: 10px;
+}
+.padbtn.on { background: var(--accent); color: #191408; border-color: var(--accent); font-weight: bold; }
+.hint { font-size: 11px; color: var(--dim); line-height: 1.7; letter-spacing: 0.05em; margin-top: 10px; }
+.hint b { color: var(--cyan); }
+
+/* ---- tabulka ovládání ---- */
+table.keys { border-collapse: collapse; font-size: 13px; width: 100%; }
+table.keys td { padding: 5px 14px 5px 0; border-bottom: 1px solid #222832; }
+table.keys td:first-child { color: var(--accent); white-space: nowrap; letter-spacing: 0.1em; }
+table.keys td:last-child { color: var(--text); }
+
+/* ---- konec mise ---- */
+#endStats { margin: 18px 0; min-width: 300px; }
+.srow { display: flex; justify-content: space-between; gap: 40px; padding: 6px 0; border-bottom: 1px solid #222832; font-size: 13.5px; }
+.srow span { color: var(--dim); letter-spacing: 0.1em; }
+.srow b { color: var(--text); }
+.srow.total b { color: var(--accent); font-size: 16px; }
+#endRating {
+  font-size: 64px; font-weight: 900; color: var(--accent);
+  text-shadow: 0 0 30px rgba(255, 184, 77, 0.5); text-align: center; margin: 8px 0;
+}
+
+#boot {
+  position: fixed; inset: 0; z-index: 40; background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--dim); letter-spacing: 0.3em; font-size: 14px;
+}
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-thumb { background: #2c3138; }
+::-webkit-scrollbar-track { background: transparent; }
